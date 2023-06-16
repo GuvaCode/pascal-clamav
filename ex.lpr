@@ -41,11 +41,11 @@ end;
 
 
 begin
-  SetExceptionMask([exInvalidOp, exZeroDivide, exOverflow]);
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 
   if (argc < 2) then
   begin
-    writeln('Usage: %s file\n', argv[0]);
+    writeln( Format('Usage: %s file', [argv[0]]) );
     exit;
   end;
 
@@ -53,7 +53,7 @@ begin
 
   if FileExists(argv[1]) = false then
   begin
-    writeln('Can''t open file %s\n', argv[1]);
+    writeln( Format( 'Can''t open file %s', [argv[1]] ));
     exit;
   end;
 
@@ -61,7 +61,7 @@ begin
 
   if not ret = integer(CL_SUCCESS) then
   begin
-    writeln('Can''t initialize libclamav: %s\n', cl_strerror(ret));
+    writeln( Format( 'Can''t initialize libclamav: %s', [cl_strerror(ret)] ));
     exit;
   end else
   engine := cl_engine_new;
@@ -70,18 +70,18 @@ begin
 
   if  cl_load(cl_retdbdir,pcl_engine(Engine),@sigs,CL_DB_OFFICIAL) > CL_SUCCESS then
   begin
-    writeln('cl_load: %s\n', cl_strerror(Integer(ret)));
+    writeln( Format( 'cl_load: %s', [cl_strerror(Integer(ret))] ));
     cl_engine_free(engine);
     exit;
   end;
 
-  writeln('Loaded %u signatures.\n', sigs);
+  writeln(Format( 'Loaded %u signatures.', [sigs] ));
 
   (* build engine *)
   ret := integer(cl_engine_compile(engine));
   if not ret = Integer(CL_SUCCESS) then
   begin
-    writeln('Database initialization error: %s\n', cl_strerror(Integer(ret)));
+    writeln(Format('Database initialization error: %s', [cl_strerror(Integer(ret))]));
     cl_engine_free(engine);
     exit;
   end;
@@ -95,14 +95,14 @@ begin
 
   if ret = integer(CL_VIRUS) then
   begin
-    writeln('Virus detected: %s\n', virname);
+    writeln(Format('Virus detected: %s', [virname]));
   end else
   if ret = integer(CL_CLEAN) then
   begin
-    writeln('No virus detected.\n');
+    writeln('No virus detected.');
   end else
   begin
-    writeln('Error: %s\n', cl_strerror(integer(ret)));
+    writeln(Format('Error: %s', [cl_strerror(integer(ret))]));
     cl_engine_free(engine);
     exit;
   end;
@@ -112,7 +112,7 @@ begin
 
   (* calculate size of scanned data *)
   mb := size * (CL_COUNT_PRECISION / 1024) / 1024.0;
-  writeln('Data scanned: %2.2Lf MB\n', mb);
+  writeln(Format ('Data scanned: %2.2 MB', [mb]));
 
 end.
 
